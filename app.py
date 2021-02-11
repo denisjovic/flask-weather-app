@@ -12,13 +12,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weather.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SECRET_KEY'] = 'secretkey'
-api_key = os.environ.get("WEATHER_API_KEY")
 from_local = os.environ.get('WEATHER_API_KEY')
-print('from_local:', from_local)
 
 now = datetime.datetime.now()
-current = now.strftime("%d-%m-%Y | %H:%M")
-print('time', current)
+current = now.strftime("%d-%m-%Y")
 
 
 db = SQLAlchemy(app)
@@ -28,9 +25,9 @@ class City(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
 
-
+# Get weather data from the API
 def get_weather_data(city):
-    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&APPID=13a432c7ce08aac8c299c70328d711f8'
+    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&APPID={from_local}'
     r = requests.get(url).json()
     return r
 
@@ -38,12 +35,11 @@ def get_weather_data(city):
 @app.route('/')
 def show_weather():
     cities = City.query.all()
-
     weather_data = []
 
+    # Get all cities data from the DB
     for city in cities:
         r = get_weather_data(city.name)
-
         weather = {
             'id': city.id,
             'city': city.name,
